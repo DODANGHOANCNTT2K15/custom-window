@@ -69,11 +69,21 @@ def create_main_window():
     frame_right = tk.Frame(bar_frame, bg=bg_color)
     frame_right.place(relx=1.0, x=0, y=0, anchor="ne", relheight=1)
 
+    # Thêm biểu tượng ellipsis
+    ellipsis_img = Image.open("assets/ellipsis.png").resize((15, 15), Image.LANCZOS)
+    ellipsis_icon = ImageTk.PhotoImage(ellipsis_img)
+    ellipsis_label = tk.Label(frame_right, image=ellipsis_icon, bg=bg_color, cursor="hand2")
+    ellipsis_label.image = ellipsis_icon
+    ellipsis_label.pack(side="left", padx=(0, 8), pady=1)
+
     mute_icon_label = tk.Label(frame_right, bg=bg_color)
     mute_icon_label.pack(side="left", padx=(0, 2), pady=1)
 
     mic_mute_icon_label = tk.Label(frame_right, bg=bg_color)
     mic_mute_icon_label.pack(side="left", padx=(0, 2), pady=1)
+
+    bluetooth_icon_label = tk.Label(frame_right, bg=bg_color)
+    bluetooth_icon_label.pack(side="left", padx=(0, 2), pady=1)
 
     battery_icon_label = tk.Label(frame_right, bg=bg_color)
     battery_icon_label.pack(side="left", padx=(5, 2), pady=1)
@@ -88,6 +98,8 @@ def create_main_window():
     settings_label.pack(side="left", padx=(0, 8), pady=1)
     settings_label.bind("<Button-1>", lambda e: os.system("start ms-settings:"))
 
+    
+
     # Đồng hồ
     label = tk.Label(
         bar_frame,
@@ -99,4 +111,4 @@ def create_main_window():
     label.place(relx=0.5, rely=0.5, anchor="center")
 
     # Trả về tất cả đối tượng cần dùng
-    return root, hwnd, label, battery_icon_label, battery_label, mute_icon_label, mic_mute_icon_label
+    return root, hwnd, label, battery_icon_label, battery_label, mute_icon_label, mic_mute_icon_label, bluetooth_icon_label
