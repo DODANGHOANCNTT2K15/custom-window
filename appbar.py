@@ -1,4 +1,3 @@
-# appbar.py
 import ctypes
 from ctypes import wintypes
 

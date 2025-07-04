@@ -14,7 +14,7 @@ def is_windows_dark_theme():
         key = winreg.OpenKey(reg, r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize")
         value, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
         winreg.CloseKey(key)
-        return value == 0  # True nếu là dark mode
+        return value == 0  
     except Exception:
         return False
 
@@ -49,15 +49,13 @@ def create_main_window():
     bar_height = 30
     root.geometry(f"{screen_width}x{bar_height}+0+0")
 
-    # Lấy handle
     root.update_idletasks()
     hwnd = ctypes.windll.user32.GetParent(root.winfo_id())
 
-    # UI tổng
     bar_frame = tk.Frame(root, bg=bg_color)
     bar_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
 
-    # Frame trái
+    # Frame left
     frame_left = tk.Frame(bar_frame, bg=bg_color)
     frame_left.place(x=0, y=0, relheight=1)
 
@@ -71,17 +69,15 @@ def create_main_window():
     user_label = tk.Label(frame_left, text=get_microsoft_account(), font=("Segoe UI", 9), fg=fg_color, bg=bg_color)
     user_label.pack(side="left", padx=(0, 8), pady=1)
 
-    # Frame phải
+    # Frame right
     frame_right = tk.Frame(bar_frame, bg=bg_color)
     frame_right.place(relx=1.0, x=0, y=0, anchor="ne", relheight=1)
 
-    # Thêm biểu tượng ellipsis
     ellipsis_img = Image.open("assets/ellipsis.png").resize((20, 20), Image.LANCZOS)
     ellipsis_icon = ImageTk.PhotoImage(ellipsis_img)
     ellipsis_label = tk.Label(frame_right, image=ellipsis_icon, bg=bg_color, cursor="hand2")
-    ellipsis_label.image = ellipsis_icon # Giữ tham chiếu để hình ảnh không bị thu hồi
-    
-    # Gán hàm press_windows_a() cho sự kiện click chuột trái (Button-1)
+    ellipsis_label.image = ellipsis_icon 
+
     ellipsis_label.bind("<Button-1>", lambda event: press_windows_a())
     ellipsis_label.pack(side="left", padx=(0, 8), pady=1)
 
@@ -100,7 +96,7 @@ def create_main_window():
     battery_label = tk.Label(frame_right, font=("Segoe UI", 9, "bold"), fg=fg_color, bg=bg_color)
     battery_label.pack(side="left", padx=(0, 8), pady=1)
 
-    # Đồng hồ
+    # clock
     label = tk.Label(
         bar_frame,
         font=("Segoe UI", 9, "bold"),
@@ -110,5 +106,4 @@ def create_main_window():
     )
     label.place(relx=0.5, rely=0.5, anchor="center")
 
-    # Trả về tất cả đối tượng cần dùng
     return root, hwnd, label, battery_icon_label, battery_label, mute_icon_label, mic_mute_icon_label, bluetooth_icon_label

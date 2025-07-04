@@ -3,16 +3,9 @@ import json
 import re
 
 def get_connected_bluetooth_devices():
-    """
-    Lấy danh sách các thiết bị Bluetooth đang kết nối.
-    
-    Returns:
-        list: Danh sách tên thiết bị đang kết nối
-    """
     connected_devices = []
     
     try:
-        # Lệnh PowerShell để lấy danh sách thiết bị Bluetooth đã kết nối
         cmd = [
             'powershell', '-Command',
             '''
@@ -31,17 +24,14 @@ def get_connected_bluetooth_devices():
                 devices = [line.strip() for line in output.split('\n') if line.strip()]
                 connected_devices = devices
         
-        # Phương pháp bổ sung: Sử dụng netsh để kiểm tra
         cmd_netsh = ['netsh', 'bluetooth', 'show', 'devices']
         result_netsh = subprocess.run(cmd_netsh, capture_output=True, text=True, timeout=15)
         
         if result_netsh.returncode == 0:
             output = result_netsh.stdout
-            # Tìm thiết bị đã kết nối (Connected)
             lines = output.split('\n')
             for line in lines:
                 if 'Connected' in line or 'Đã kết nối' in line:
-                    # Trích xuất tên thiết bị
                     device_match = re.search(r'"([^"]+)"', line)
                     if device_match:
                         device_name = device_match.group(1)
@@ -55,7 +45,6 @@ def get_connected_bluetooth_devices():
 
 def check_bluetooth_connection_detailed():
     try:
-        # Lệnh PowerShell chi tiết để kiểm tra Bluetooth
         cmd = [
             'powershell', '-Command',
             '''
@@ -91,7 +80,6 @@ def check_bluetooth_connection_detailed():
             except json.JSONDecodeError:
                 pass
         
-        # Fallback method
         devices = get_connected_bluetooth_devices()
         return {
             'connected': 1 if len(devices) > 0 else 0,
