@@ -31,6 +31,18 @@ def get_microsoft_account():
 def press_windows_a():
     pyautogui.hotkey('win', 'a')
 
+def get_display_name():
+    GetUserNameEx = ctypes.windll.secur32.GetUserNameExW
+    NameDisplay = 3  # NameDisplay là tên người dùng đầy đủ (VD: "Đỗ Đăng Hoàn")
+
+    size = ctypes.pointer(ctypes.c_ulong(0))
+    GetUserNameEx(NameDisplay, None, size)
+
+    name_buffer = ctypes.create_unicode_buffer(size.contents.value)
+    if GetUserNameEx(NameDisplay, name_buffer, size):
+        return name_buffer.value
+    return None
+
 def create_main_window():
     root = tk.Tk()
     root.overrideredirect(True)
@@ -66,20 +78,12 @@ def create_main_window():
     window_icon_label.image = window_icon
     window_icon_label.pack(side="left", padx=(5, 2), pady=1)
 
-    user_label = tk.Label(frame_left, text=get_microsoft_account(), font=("Segoe UI", 9), fg=fg_color, bg=bg_color)
+    user_label = tk.Label(frame_left, text=get_display_name(), font=("Segoe UI", 9), fg=fg_color, bg=bg_color)
     user_label.pack(side="left", padx=(0, 8), pady=1)
 
     # Frame right
     frame_right = tk.Frame(bar_frame, bg=bg_color)
     frame_right.place(relx=1.0, x=0, y=0, anchor="ne", relheight=1)
-
-    ellipsis_img = Image.open("assets/ellipsis.png").resize((20, 20), Image.LANCZOS)
-    ellipsis_icon = ImageTk.PhotoImage(ellipsis_img)
-    ellipsis_label = tk.Label(frame_right, image=ellipsis_icon, bg=bg_color, cursor="hand2")
-    ellipsis_label.image = ellipsis_icon 
-
-    ellipsis_label.bind("<Button-1>", lambda event: press_windows_a())
-    ellipsis_label.pack(side="left", padx=(0, 8), pady=1)
 
     mute_icon_label = tk.Label(frame_right, bg=bg_color)
     mute_icon_label.pack(side="left", padx=(0, 2), pady=1)
@@ -95,6 +99,14 @@ def create_main_window():
 
     battery_label = tk.Label(frame_right, font=("Segoe UI", 9, "bold"), fg=fg_color, bg=bg_color)
     battery_label.pack(side="left", padx=(0, 8), pady=1)
+
+    ellipsis_img = Image.open("assets/ellipsis.png").resize((20, 20), Image.LANCZOS)
+    ellipsis_icon = ImageTk.PhotoImage(ellipsis_img)
+    ellipsis_label = tk.Label(frame_right, image=ellipsis_icon, bg=bg_color, cursor="hand2")
+    ellipsis_label.image = ellipsis_icon 
+
+    ellipsis_label.bind("<Button-1>", lambda event: press_windows_a())
+    ellipsis_label.pack(side="left", padx=(0, 8), pady=1)
 
     # clock
     label = tk.Label(

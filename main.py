@@ -21,7 +21,7 @@ if __name__ == "__main__":
         update_bluetooth_icon(root, bluetooth_icon_label)
 
         root.protocol("WM_DELETE_WINDOW", lambda: (
-            unregister_appbar(hwnd), 
+            unregister_appbar(hwnd),  
             root.destroy(), 
         ))
         
