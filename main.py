@@ -4,8 +4,8 @@ import ctypes
 from appbar import register_appbar, unregister_appbar
 from ui import create_main_window
 from time_display import update_time
-from battery import start_battery_thread
-from mute_status import update_mute_icon, update_mic_mute_icon, update_bluetooth_icon
+from battery import start_battery_thread, update_battery_ui
+from icon_status import update_mute_icon, update_mic_mute_icon, update_bluetooth_icon
 from comtypes import CoInitialize, CoUninitialize
 
 if __name__ == "__main__":
@@ -18,7 +18,8 @@ if __name__ == "__main__":
         # Chạy các chức năng cập nhật (bao gồm cả các hàm kiểm tra mute)
         # Các hàm này sẽ sử dụng môi trường COM đã được CoInitialize() thiết lập
         update_time(root, label)
-        start_battery_thread(root, battery_icon_label, battery_label)
+        start_battery_thread()
+        update_battery_ui(root, battery_icon_label, battery_label)
         update_mute_icon(root, mute_icon_label) # Hàm này gọi is_system_muted()
         update_mic_mute_icon(root, mic_mute_icon_label) # Hàm này gọi is_mic_muted()
         update_bluetooth_icon(root, bluetooth_icon_label) # Hàm này gọi is_mic_muted() để kiểm tra kết nối Bluetooth

@@ -4,6 +4,9 @@ import os
 import winreg
 import getpass
 from PIL import Image, ImageTk
+from PIL import ImageDraw
+import pyautogui
+import subprocess
 
 def is_windows_dark_theme():
     try:
@@ -25,6 +28,9 @@ def get_microsoft_account():
     except Exception:
         return getpass.getuser()
 
+def press_windows_a():
+    pyautogui.hotkey('win', 'a')
+
 def create_main_window():
     root = tk.Tk()
     root.overrideredirect(True)
@@ -40,7 +46,7 @@ def create_main_window():
 
     root.configure(bg=bg_color)
     screen_width = root.winfo_screenwidth()
-    bar_height = 25
+    bar_height = 30
     root.geometry(f"{screen_width}x{bar_height}+0+0")
 
     # Lấy handle
@@ -70,10 +76,13 @@ def create_main_window():
     frame_right.place(relx=1.0, x=0, y=0, anchor="ne", relheight=1)
 
     # Thêm biểu tượng ellipsis
-    ellipsis_img = Image.open("assets/ellipsis.png").resize((15, 15), Image.LANCZOS)
+    ellipsis_img = Image.open("assets/ellipsis.png").resize((20, 20), Image.LANCZOS)
     ellipsis_icon = ImageTk.PhotoImage(ellipsis_img)
     ellipsis_label = tk.Label(frame_right, image=ellipsis_icon, bg=bg_color, cursor="hand2")
-    ellipsis_label.image = ellipsis_icon
+    ellipsis_label.image = ellipsis_icon # Giữ tham chiếu để hình ảnh không bị thu hồi
+    
+    # Gán hàm press_windows_a() cho sự kiện click chuột trái (Button-1)
+    ellipsis_label.bind("<Button-1>", lambda event: press_windows_a())
     ellipsis_label.pack(side="left", padx=(0, 8), pady=1)
 
     mute_icon_label = tk.Label(frame_right, bg=bg_color)
@@ -91,19 +100,10 @@ def create_main_window():
     battery_label = tk.Label(frame_right, font=("Segoe UI", 9, "bold"), fg=fg_color, bg=bg_color)
     battery_label.pack(side="left", padx=(0, 8), pady=1)
 
-    settings_img = Image.open("assets/settings.png").resize((15, 15), Image.LANCZOS)
-    settings_icon = ImageTk.PhotoImage(settings_img)
-    settings_label = tk.Label(frame_right, image=settings_icon, bg=bg_color, cursor="hand2")
-    settings_label.image = settings_icon
-    settings_label.pack(side="left", padx=(0, 8), pady=1)
-    settings_label.bind("<Button-1>", lambda e: os.system("start ms-settings:"))
-
-    
-
     # Đồng hồ
     label = tk.Label(
         bar_frame,
-        font=("Segoe UI", 10, "bold"),
+        font=("Segoe UI", 9, "bold"),
         fg=fg_color,
         bg=bg_color,
         anchor="center"
