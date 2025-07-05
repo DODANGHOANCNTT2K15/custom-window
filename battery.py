@@ -4,6 +4,7 @@ import threading
 from PIL import Image, ImageTk
 import queue
 import os
+from ui import resource_path
 
 battery_queue = queue.Queue()
 _last_state = {'percent': None, 'charging': None}  
@@ -56,7 +57,7 @@ def update_battery_ui(root, battery_icon_label, battery_label):
                 icon = _icon_cache[icon_path]
             else:
                 try:
-                    icon_img = Image.open(icon_path).resize((22, 22), Image.LANCZOS)
+                    icon_img = Image.open(resource_path(icon_path)).resize((22, 22), Image.LANCZOS)
                     icon = ImageTk.PhotoImage(icon_img)
                     _icon_cache[icon_path] = icon
                 except Exception:

@@ -4,11 +4,12 @@ from mic_check import is_mic_muted
 from bluetooth_check import is_bluetooth_enabled
 import tkinter as tk
 from comtypes import CLSCTX_ALL, CoInitialize, CoUninitialize
+from ui import resource_path
 
 def update_mute_icon(root, mute_icon_label):
     def loop():
         if is_system_muted():
-            mute_img = Image.open("assets/volumn_mute.png").resize((15, 15), Image.LANCZOS)
+            mute_img = Image.open(resource_path("assets/volumn_mute.png")).resize((15, 15), Image.LANCZOS)
             mute_icon = ImageTk.PhotoImage(mute_img)
             mute_icon_label.config(image=mute_icon)
             mute_icon_label.image = mute_icon
@@ -21,7 +22,7 @@ def update_mute_icon(root, mute_icon_label):
 def update_mic_mute_icon(root, mic_mute_icon_label):
     def loop():
         if is_mic_muted():
-            mic_img = Image.open("assets/mic_mute.png").resize((17, 17), Image.LANCZOS)
+            mic_img = Image.open(resource_path("assets/mic_mute.png")).resize((17, 17), Image.LANCZOS)
             mic_icon = ImageTk.PhotoImage(mic_img)
             mic_mute_icon_label.config(image=mic_icon)
             mic_mute_icon_label.image = mic_icon
@@ -34,7 +35,7 @@ def update_mic_mute_icon(root, mic_mute_icon_label):
 def update_bluetooth_icon(root, bluetooth_icon_label):
     def loop():
         if is_bluetooth_enabled():
-            blue_img = Image.open("assets/bluetooth_connected.png").resize((14, 14), Image.LANCZOS)
+            blue_img = Image.open(resource_path("assets/bluetooth_connected.png")).resize((14, 14), Image.LANCZOS)
             blue_icon = ImageTk.PhotoImage(blue_img)
             bluetooth_icon_label.config(image=blue_icon)
             bluetooth_icon_label.image = blue_icon

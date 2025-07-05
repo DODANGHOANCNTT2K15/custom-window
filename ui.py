@@ -4,19 +4,32 @@ import os
 import winreg
 import getpass
 from PIL import Image, ImageTk
-from PIL import ImageDraw
 import pyautogui
-import subprocess
+import sys
+import pyautogui
+from PIL import ImageGrab
+import threading
+import win32gui
+import win32process
+import win32con
+import psutil
+import time
 
-def is_windows_dark_theme():
+def resource_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
+
+def get_color_at_screen_position(x, y):
     try:
-        reg = winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
-        key = winreg.OpenKey(reg, r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize")
-        value, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
-        winreg.CloseKey(key)
-        return value == 0  
-    except Exception:
-        return False
+        screenshot = ImageGrab.grab()
+        pixel_color = screenshot.getpixel((x, y)) 
+        hex_color = f"#{pixel_color[0]:02X}{pixel_color[1]:02X}{pixel_color[2]:02X}"
+        
+        return hex_color
+    except Exception as e:
+        print(f"Đã xảy ra lỗi khi lấy mã màu: {e}")
+        return "#202020"
 
 def get_microsoft_account():
     try:
@@ -48,13 +61,9 @@ def create_main_window():
     root.overrideredirect(True)
     root.attributes("-topmost", True)
 
-    # Theme
-    if is_windows_dark_theme():
-        bg_color = "#202020"
-        fg_color = "white"
-    else:
-        bg_color = "#ffffff"
-        fg_color = "black"
+    bg_color = "#202020"
+    bg_color = get_color_at_screen_position(100, 30)
+    fg_color = "white"
 
     root.configure(bg=bg_color)
     screen_width = root.winfo_screenwidth()
@@ -72,7 +81,7 @@ def create_main_window():
     frame_left.place(x=0, y=0, relheight=1)
 
     # Icon + User
-    window_img = Image.open("assets/window.png").resize((15, 15), Image.LANCZOS)
+    window_img = Image.open(resource_path("assets/window.png")).resize((15, 15), Image.LANCZOS)
     window_icon = ImageTk.PhotoImage(window_img)
     window_icon_label = tk.Label(frame_left, image=window_icon, bg=bg_color)
     window_icon_label.image = window_icon
@@ -100,7 +109,7 @@ def create_main_window():
     battery_label = tk.Label(frame_right, font=("Segoe UI", 9, "bold"), fg=fg_color, bg=bg_color)
     battery_label.pack(side="left", padx=(0, 8), pady=1)
 
-    ellipsis_img = Image.open("assets/ellipsis.png").resize((20, 20), Image.LANCZOS)
+    ellipsis_img = Image.open(resource_path("assets/ellipsis.png")).resize((20, 20), Image.LANCZOS)
     ellipsis_icon = ImageTk.PhotoImage(ellipsis_img)
     ellipsis_label = tk.Label(frame_right, image=ellipsis_icon, bg=bg_color, cursor="hand2")
     ellipsis_label.image = ellipsis_icon 
@@ -118,4 +127,93 @@ def create_main_window():
     )
     label.place(relx=0.5, rely=0.5, anchor="center")
 
-    return root, hwnd, label, battery_icon_label, battery_label, mute_icon_label, mic_mute_icon_label, bluetooth_icon_label
+    widgets_to_update = [
+        root, bar_frame, frame_left, frame_right, user_label,
+        mute_icon_label, mic_mute_icon_label, bluetooth_icon_label,
+        battery_icon_label, battery_label, ellipsis_label, label
+    ]
+    return root, hwnd, label, battery_icon_label, battery_label, mute_icon_label, mic_mute_icon_label, bluetooth_icon_label, widgets_to_update
+
+def is_window_maximized(hwnd):
+    placement = win32gui.GetWindowPlacement(hwnd)
+    return placement[1] == win32con.SW_MAXIMIZE
+
+def get_foreground_info():
+    hwnd = win32gui.GetForegroundWindow()
+    _, pid = win32process.GetWindowThreadProcessId(hwnd)
+    return hwnd, pid
+
+def start_window_monitor(root, widgets_to_update):
+    last_pid = None
+    last_hwnd = None
+    last_maximized = None
+
+    def monitor():
+        nonlocal last_pid, last_hwnd, last_maximized
+        while True:
+            try:
+                hwnd, pid = get_foreground_info()
+                maximized = is_window_maximized(hwnd)
+
+                if (
+                    pid != last_pid or
+                    hwnd != last_hwnd or
+                    maximized != last_maximized
+                ):
+                    if maximized:
+                        time.sleep(0.2)
+                        new_color = get_color_at_screen_position(100, 30)
+                        root.after(0, lambda: update_background_color(new_color, widgets_to_update))
+                    
+                    last_pid = pid 
+                    last_hwnd = hwnd
+                    last_maximized = maximized
+
+            except Exception:
+                pass
+            time.sleep(0.3)
+
+    threading.Thread(target=monitor, daemon=True).start()
+
+def update_background_color(new_color, widgets):
+    if not widgets:
+        return
+    if is_bright_color(new_color):
+        new_color = "#202020"  
+
+    current_color = widgets[0].cget("bg")
+    fade_background_color(widgets[0].winfo_toplevel(), widgets, current_color, new_color)
+
+def hex_to_rgb(hex_color):
+    hex_color = hex_color.lstrip('#')
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+
+def rgb_to_hex(rgb):
+    return '#{:02X}{:02X}{:02X}'.format(*rgb)
+
+def interpolate_color(color1, color2, step, total_steps):
+    return tuple(
+        int(color1[i] + (color2[i] - color1[i]) * step / total_steps)
+        for i in range(3)
+    )
+
+def fade_background_color(root, widgets, from_color, to_color, steps=20, delay=20):
+    from_rgb = hex_to_rgb(from_color)
+    to_rgb = hex_to_rgb(to_color)
+
+    def update_step(step):
+        if step > steps:
+            return
+        new_rgb = interpolate_color(from_rgb, to_rgb, step, steps)
+        new_hex = rgb_to_hex(new_rgb)
+        for widget in widgets:
+            widget.configure(bg=new_hex)
+        root.after(delay, lambda: update_step(step + 1))
+
+    update_step(0)
+
+def is_bright_color(hex_color):
+    r, g, b = hex_to_rgb(hex_color)
+    
+    luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    return luminance > 180 
